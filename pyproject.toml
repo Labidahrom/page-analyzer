@@ -4,12 +4,13 @@ version = "0.1.0"
 description = ""
 authors = ["Labidahrom <labidahrom@yandex.ru>"]
 readme = "README.md"
-packages = [{include = "analyzer"}]
+packages = [{include = "page_analyzer"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 flask = "^2.2.2"
 flake8 = "^6.0.0"
+gunicorn = "^20.1.0"
 
 
 [build-system]
