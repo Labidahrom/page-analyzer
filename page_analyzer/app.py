@@ -5,4 +5,4 @@ app = Flask(__name__)
 
 @app.get('/')
 def hello_get():
-    return 'Hello, GET!'
+    return 'Hello, GET1!'
