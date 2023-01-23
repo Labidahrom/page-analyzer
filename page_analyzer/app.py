@@ -1,8 +1,13 @@
 from flask import Flask
+from flask import render_template
+
 
 app = Flask(__name__)
 
 
-@app.get('/')
-def hello_get():
-    return 'Hello, GET1!'
+@app.route('/')
+def users_list():
+
+    return render_template(
+        'index.html'
+    )
