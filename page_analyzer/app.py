@@ -1,4 +1,5 @@
-from flask import Flask, request, redirect, render_template, flash, get_flashed_messages
+from flask import Flask, request, redirect, \
+    render_template, flash, get_flashed_messages
 import psycopg2
 from datetime import datetime
 from validators.url import url
@@ -19,11 +20,12 @@ def add_to_base(site_url):
     cursor = conn.cursor()
     now = datetime.now()
     date = now.strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)", (site_url, date))
+    cursor.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
+                   (site_url, date))
     conn.commit()
     cursor.close()
     conn.close()
-    
+
 
 def get_database():
     conn = psycopg2.connect(DATABASE_URL)
