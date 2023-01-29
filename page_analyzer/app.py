@@ -3,14 +3,19 @@ import psycopg2
 from datetime import datetime
 from validators.url import url
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+import os
 
 
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+SECRET_KEY = os.getenv("SECRET_KEY")
 app = Flask(__name__)
-app.secret_key = "secret_key"
+app.secret_key = SECRET_KEY
 
 
 def add_to_base(site_url):
-    conn = psycopg2.connect(dbname='page_analyzer', user='analyzer', password='HGW333z@', host='127.0.0.1')
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     now = datetime.now()
     date = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -21,7 +26,7 @@ def add_to_base(site_url):
     
 
 def get_database():
-    conn = psycopg2.connect(dbname='page_analyzer', user='analyzer', password='HGW333z@', host='127.0.0.1')
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM urls ORDER BY id DESC")
     database = cursor.fetchall()
