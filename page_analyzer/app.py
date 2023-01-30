@@ -13,13 +13,14 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("SECRET_KEY")
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
+URLS_QUERY = "SELECT * FROM urls ORDER BY id DESC"
 
 
-def add_to_base(site_url):
+def add_to_url_table(site_url):
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     now = datetime.now()
-    date = now.strftime("%Y-%m-%d %H:%M:%S")
+    date = now.strftime("%Y-%m-%d")
     cursor.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
                    (site_url, date))
     conn.commit()
@@ -27,10 +28,22 @@ def add_to_base(site_url):
     conn.close()
 
 
-def get_database():
+def add_to_url_checks_table(id):
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM urls ORDER BY id DESC")
+    now = datetime.now()
+    date = now.strftime("%Y-%m-%d")
+    cursor.execute("INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s)",
+                   (id, date))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+def get_database(query):
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(query)
     database = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -38,21 +51,21 @@ def get_database():
 
 
 def get_database_entry_by_id(id):
-    all_sites = get_database()
+    all_sites = get_database(URLS_QUERY)
     for i in all_sites:
         if int(i[0]) == int(id):
             return i
 
 
 def get_id_by_url(url):
-    all_sites = get_database()
+    all_sites = get_database(URLS_QUERY)
     for i in all_sites:
         if i[1] == url:
             return i[0]
 
 
 def find_same_url(site_url):
-    all_sites = get_database()
+    all_sites = get_database(URLS_QUERY)
     for i in all_sites:
         if i[1] == site_url:
             return i
@@ -68,7 +81,11 @@ def get_index():
 
 @app.route('/urls')
 def get_urls():
-    site_list = get_database()
+    join_urls_query = "SELECT DISTINCT ON (id) * FROM urls LEFT JOIN" \
+                      " (SELECT url_id, created_at AS last_check_date FROM" \
+                      " url_checks ORDER BY id DESC) AS checks ON urls.id" \
+                      " = checks.url_id ORDER BY id DESC;"
+    site_list = get_database(join_urls_query)
     return render_template(
         'site_list.html',
         site_list=site_list
@@ -85,18 +102,28 @@ def post_urls():
     if not url(site_url) or len(site_url) > 255:
         flash('Некорректный URL', 'danger')
         return redirect('/')
-    add_to_base(site_url)
+    add_to_url_table(site_url)
     id = get_id_by_url(site_url)
     flash('Страница успешно добавлена', 'success')
     return redirect(f'/urls/{id}')
 
 
+@app.post('/urls/<id>/checks')
+def post_url_check(id):
+    add_to_url_checks_table(id)
+    flash('Страница успешно проверена', 'success')
+    return redirect(f'/urls/{id}')
+
+
 @app.route('/urls/<id>')
 def get_url(id):
-    id, name, raw_date = get_database_entry_by_id(id)
-    date = raw_date.strftime("%Y-%m-%d")
+    id, name, date = get_database_entry_by_id(id)
+    url_checks_query = f"SELECT * FROM url_checks WHERE url_id" \
+                       f" = {id} ORDER BY id DESC"
+    site_checks = get_database(url_checks_query)
     messages = get_flashed_messages(with_categories=True)
     return render_template(
         'single_site.html',
-        id=id, name=name, date=date, messages=messages
+        id=id, name=name, date=date, messages=messages,
+        site_checks=site_checks
     )
