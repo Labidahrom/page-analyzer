@@ -33,7 +33,8 @@ def add_to_url_checks_table(id):
     cursor = conn.cursor()
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
-    cursor.execute("INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s)",
+    cursor.execute("INSERT INTO url_checks (url_id, created_at) "
+                   "VALUES (%s, %s)",
                    (id, date))
     conn.commit()
     cursor.close()
