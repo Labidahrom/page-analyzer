@@ -6,6 +6,8 @@ from validators.url import url
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
+import requests
+from bs4 import BeautifulSoup
 
 
 load_dotenv()
@@ -28,14 +30,33 @@ def add_to_url_table(site_url):
     conn.close()
 
 
-def add_to_url_checks_table(id):
+def make_url_check(url):
+    page = requests.get(url)
+    status_code = page.status_code
+    soup = BeautifulSoup(page.content, "html.parser")
+    title = soup.find('title')
+    h1 = soup.find('h1')
+    description = None
+    if title:
+        title = title.get_text()
+    if h1:
+        h1 = h1.get_text()
+    meta_search = soup.find_all("meta")
+    for i in meta_search:
+        if i.get('name') == 'description':
+            description = i.get('content')
+    return status_code, title, h1, description
+
+
+def add_to_url_checks_table(id, status_code, title, h1, description):
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
-    cursor.execute("INSERT INTO url_checks (url_id, created_at) "
-                   "VALUES (%s, %s)",
-                   (id, date))
+    cursor.execute("INSERT INTO url_checks (url_id, status_code, title, "
+                   "h1, description, created_at) "
+                   "VALUES (%s, %s, %s, %s, %s, %s)",
+                   (id, status_code, title, h1, description, date))
     conn.commit()
     cursor.close()
     conn.close()
@@ -83,9 +104,10 @@ def get_index():
 @app.route('/urls')
 def get_urls():
     join_urls_query = "SELECT DISTINCT ON (id) * FROM urls LEFT JOIN" \
-                      " (SELECT url_id, created_at AS last_check_date FROM" \
-                      " url_checks ORDER BY id DESC) AS checks ON urls.id" \
-                      " = checks.url_id ORDER BY id DESC;"
+                      " (SELECT url_id, status_code, created_at AS" \
+                      " last_check_date FROM url_checks ORDER BY id DESC) AS" \
+                      " checks ON urls.id = checks.url_id ORDER BY id DESC;" \
+
     site_list = get_database(join_urls_query)
     return render_template(
         'site_list.html',
@@ -111,7 +133,14 @@ def post_urls():
 
 @app.post('/urls/<id>/checks')
 def post_url_check(id):
-    add_to_url_checks_table(id)
+    try:
+        id, url, date = get_database_entry_by_id(id)
+        status_code, title, h1, description = make_url_check(url)
+    except:
+        flash('Произошла ошибка при проверке', 'danger')
+        return redirect(f'/urls/{id}')
+
+    add_to_url_checks_table(id, status_code, title, h1, description)
     flash('Страница успешно проверена', 'success')
     return redirect(f'/urls/{id}')
 
