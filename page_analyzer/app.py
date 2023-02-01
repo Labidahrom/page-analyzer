@@ -136,7 +136,7 @@ def post_url_check(id):
     try:
         id, url, date = get_database_entry_by_id(id)
         status_code, title, h1, description = make_url_check(url)
-    except:
+    except requests.exceptions.ConnectionError:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(f'/urls/{id}')
 
