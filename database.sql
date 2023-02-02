@@ -83,28 +83,6 @@ ALTER TABLE public.urls ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 --
 
 COPY public.url_checks (id, url_id, status_code, h1, title, description, created_at) FROM stdin;
-1	31	\N	\N	\N	\N	2023-01-30
-2	31	\N	\N	\N	\N	2023-01-30
-3	30	\N	\N	\N	\N	2023-01-30
-4	31	\N	\N	\N	\N	2023-01-30
-5	30	\N	\N	\N	\N	2023-01-30
-6	31	\N	\N	\N	\N	2023-01-30
-7	28	\N	\N	\N	\N	2023-01-30
-8	29	\N	\N	\N	\N	2023-01-30
-9	32	200	\N	\N	\N	2023-01-30
-10	31	200	\N	\N	\N	2023-01-30
-11	31	200	\N	\N	\N	2023-01-30
-12	32	200	\N	\N	\N	2023-01-30
-13	32	200	\N	Google	\N	2023-01-31
-14	33	200	\N	The New York Times - Breaking News, US News, World News and Videos	Live news, investigations, opinion, photos and video by the journalists of The New York Times from more than 150 countries around the world. Subscribe for coverage of U.S. and international news, politics, business, technology, science, health, arts, sports and more.	2023-01-31
-15	29	200	psycopg	PostgreSQL driver for Python — Psycopg	Python adapter for PostgreSQL	2023-01-31
-16	33	200	\N	The New York Times - Breaking News, US News, World News and Videos	Live news, investigations, opinion, photos and video by the journalists of The New York Times from more than 150 countries around the world. Subscribe for coverage of U.S. and international news, politics, business, technology, science, health, arts, sports and more.	2023-02-01
-17	33	200	\N	The New York Times - Breaking News, US News, World News and Videos	Live news, investigations, opinion, photos and video by the journalists of The New York Times from more than 150 countries around the world. Subscribe for coverage of U.S. and international news, politics, business, technology, science, health, arts, sports and more.	2023-02-02
-18	30	200	\N	\N	\N	2023-02-02
-19	28	200	\N	Яндекс	\N	2023-02-02
-20	34	200	Онлайн-школа программирования, за выпускниками которой охотятся компании\n	Хекслет — больше чем школа программирования. Онлайн курсы, сообщество программистов	Живое онлайн сообщество программистов и разработчиков на JS, Python, Java, PHP, Ruby. Авторские программы обучения с практикой и готовыми проектами в резюме. Помощь в трудоустройстве после успешного окончания обучения	2023-02-02
-21	35	200	\N	Новости дня в России и мире — РБК	Главные новости политики, экономики и бизнеса, комментарии аналитиков, финансовые данные с российских и мировых биржевых систем на сайте rbc.ru.	2023-02-02
-22	28	200	\N	Ой!	\N	2023-02-02
 \.
 
 
