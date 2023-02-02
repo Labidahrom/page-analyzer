@@ -79,22 +79,6 @@ ALTER TABLE public.urls ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 
 --
--- Data for Name: url_checks; Type: TABLE DATA; Schema: public; Owner: roman
---
-
-COPY public.url_checks (id, url_id, status_code, h1, title, description, created_at) FROM stdin;
-\.
-
-
---
--- Data for Name: urls; Type: TABLE DATA; Schema: public; Owner: roman
---
-
-COPY public.urls (id, name, created_at) FROM stdin;
-\.
-
-
---
 -- Name: url_checks_id_seq; Type: SEQUENCE SET; Schema: public; Owner: roman
 --
 
