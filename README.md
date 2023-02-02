@@ -4,7 +4,7 @@
 [![Actions Status](https://github.com/Labidahrom/python-project-83/actions/workflows/python-package.yml/badge.svg)](https://github.com/Labidahrom/python-project-83/actions)
 
 ## Project description
-Example link: https://python-project-83-production-7904.up.railway.app/
+<p>Working web application example: https://python-project-83-production-7904.up.railway.app/</p>
 A simple url analyzer. This parser allows you to get the url status code and content of the meta tags:
 - title
 - h1
