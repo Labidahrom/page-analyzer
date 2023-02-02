@@ -91,15 +91,6 @@ COPY public.url_checks (id, url_id, status_code, h1, title, description, created
 --
 
 COPY public.urls (id, name, created_at) FROM stdin;
-27	https://www.psycop55g.org/	2023-01-27
-28	https://yandex.kz/	2023-01-28
-29	https://www.psycopg.org	2023-01-28
-30	https://ya.ru	2023-01-29
-31	https://dev.to	2023-01-29
-32	https://www.google.com	2023-01-30
-33	https://www.nytimes.com	2023-01-31
-34	https://ru.hexlet.io	2023-02-02
-35	https://www.rbc.ru	2023-02-02
 \.
 
 
