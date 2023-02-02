@@ -1,5 +1,5 @@
-from flask import Flask, request, redirect, \
-    render_template, flash, get_flashed_messages
+from flask import Flask, request, redirect, render_template, \
+    flash, get_flashed_messages, url_for
 import psycopg2
 from datetime import datetime
 from validators.url import url
@@ -121,14 +121,14 @@ def post_urls():
     site_url = f'{parse_url.scheme}://{parse_url.hostname}'
     if find_same_url(site_url):
         flash('Страница уже существует', 'info')
-        return redirect('/')
+        return redirect(url_for('get_index'))
     if not url(site_url) or len(site_url) > 255:
         flash('Некорректный URL', 'danger')
-        return redirect('/')
+        return redirect(url_for('get_index'))
     add_to_url_table(site_url)
     id = get_id_by_url(site_url)
     flash('Страница успешно добавлена', 'success')
-    return redirect(f'/urls/{id}')
+    return redirect(url_for('get_url', id=id))
 
 
 @app.post('/urls/<id>/checks')
@@ -138,11 +138,11 @@ def post_url_check(id):
         status_code, title, h1, description = make_url_check(url)
     except requests.exceptions.ConnectionError:
         flash('Произошла ошибка при проверке', 'danger')
-        return redirect(f'/urls/{id}')
+        return redirect(url_for('get_url', id=id))
 
     add_to_url_checks_table(id, status_code, title, h1, description)
     flash('Страница успешно проверена', 'success')
-    return redirect(f'/urls/{id}')
+    return redirect(url_for('get_url', id=id))
 
 
 @app.route('/urls/<id>')
