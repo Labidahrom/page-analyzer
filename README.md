@@ -2,6 +2,7 @@
 ### Hexlet tests and linter status:
 [![Actions Status](https://github.com/Labidahrom/python-project-83/workflows/hexlet-check/badge.svg)](https://github.com/Labidahrom/python-project-83/actions)
 [![Actions Status](https://github.com/Labidahrom/python-project-83/actions/workflows/python-package.yml/badge.svg)](https://github.com/Labidahrom/python-project-83/actions)
+<a href="https://codeclimate.com/github/Labidahrom/python-project-83/maintainability"><img src="https://api.codeclimate.com/v1/badges/d9be0ec26c480f768352/maintainability" /></a>
 
 ## Project description
 <p>Working web application example: https://python-project-83-production-7904.up.railway.app/</p>
