@@ -134,7 +134,7 @@ def post_urls():
         return redirect(url_for('get_url', id=id))
     if not url(site_url) or len(site_url) > 255:
         flash('Некорректный URL', 'danger')
-        return redirect(url_for('get_index'))
+        return redirect(url_for('get_index'), code=302)
     add_to_url_table(site_url)
     id = get_id_by_url(site_url)
     flash('Страница успешно добавлена', 'success')
