@@ -126,8 +126,9 @@ def post_urls():
     parse_url = urlparse(request.form.to_dict()['url'])
     site_url = f'{parse_url.scheme}://{parse_url.hostname}'
     if find_same_url(site_url):
+        id = get_id_by_url(site_url)
         flash('Страница уже существует', 'info')
-        return redirect(url_for('get_index'))
+        return redirect(url_for('get_url', id=id))
     if not url(site_url) or len(site_url) > 255:
         flash('Некорректный URL', 'danger')
         return redirect(url_for('get_index'))
