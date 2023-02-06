@@ -37,8 +37,8 @@ def make_url_check(url):
                "Accept": "text/html,application/xhtml+xml,"
                          "application/xml;q=0.9,*/*;q=0.8"}
     page = session.get(url, headers=headers)
+    page.raise_for_status()
     status_code = page.status_code
-    print(status_code)
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find('title')
     h1 = soup.find('h1')
