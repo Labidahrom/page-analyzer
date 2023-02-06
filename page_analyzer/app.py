@@ -36,9 +36,12 @@ def make_url_check(url):
                              "Gecko/20100101 Firefox/60.0",
                "Accept": "text/html,application/xhtml+xml,"
                          "application/xml;q=0.9,*/*;q=0.8"}
-    page = session.get(url, headers=headers)
-    page.raise_for_status()
-    status_code = page.status_code
+    try:
+        page = session.get(url, headers=headers)
+        page.raise_for_status()
+        status_code = page.status_code
+    except requests.exceptions.RequestException:
+        return
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find('title')
     h1 = soup.find('h1')
@@ -140,10 +143,10 @@ def post_urls():
 
 @app.post('/urls/<id>/checks')
 def post_url_check(id):
-    try:
-        id, url, date = get_database_entry_by_id(id)
+    id, url, date = get_database_entry_by_id(id)
+    if make_url_check(url):
         status_code, title, h1, description = make_url_check(url)
-    except requests.exceptions.ConnectionError:
+    else:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('get_url', id=id))
 
