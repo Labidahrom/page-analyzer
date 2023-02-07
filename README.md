@@ -7,9 +7,9 @@
 ## Project description
 <p>Working web application example: https://python-project-83-production-7904.up.railway.app/</p>
 A simple url analyzer. This parser allows you to get the url status code and content of the meta tags:
-- title
-- h1
-- description
+ - title
+ - h1
+ - description
 
 ## System requirements
 - Linux
