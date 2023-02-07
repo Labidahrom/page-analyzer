@@ -30,7 +30,7 @@ def add_to_url_table(site_url):
     conn.close()
 
 
-def make_url_check(url):
+def get_page(url):
     session = requests.session()
     headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) "
                              "Gecko/20100101 Firefox/60.0",
@@ -39,9 +39,13 @@ def make_url_check(url):
     try:
         page = session.get(url, headers=headers)
         page.raise_for_status()
-        status_code = page.status_code
+        return page
     except requests.exceptions.RequestException:
         return
+
+
+def make_url_check(page):
+    status_code = page.status_code
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find('title')
     h1 = soup.find('h1')
@@ -148,8 +152,9 @@ def post_urls():
 @app.post('/urls/<id>/checks')
 def post_url_check(id):
     id, url, date = get_database_entry_by_id(id)
-    if make_url_check(url):
-        status_code, title, h1, description = make_url_check(url)
+    page = get_page(url)
+    if page:
+        status_code, title, h1, description = make_url_check(page)
     else:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('get_url', id=id))
