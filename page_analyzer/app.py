@@ -39,7 +39,7 @@ def get_date():
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def get_page(url):
+def make_url_check(url):
     session = requests.session()
     headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) "
                              "Gecko/20100101 Firefox/60.0",
@@ -48,44 +48,28 @@ def get_page(url):
     try:
         page = session.get(url, headers=headers)
         page.raise_for_status()
-        return page
     except requests.exceptions.RequestException:
         return
-
-
-def make_url_check(page):
     status_code = page.status_code
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find('title')
     h1 = soup.find('h1')
-    description = None
+    description = soup.find("meta", {"name": "description"})
     if title:
         title = title.get_text()
     if h1:
         h1 = h1.get_text()
-    meta_search = soup.find_all("meta")
-    for i in meta_search:
-        if i.get('name') == 'description':
-            description = i.get('content')
+    if description:
+        description = description.attrs.get("content", "")
     return status_code, title, h1, description
 
 
 def add_to_url_checks_table(id, status_code, title, h1, description):
     date = get_date()
     make_database_entry("INSERT INTO url_checks (url_id, status_code, title, "
-                   "h1, description, created_at) "
-                   "VALUES (%s, %s, %s, %s, %s, %s)",
-                   id, status_code, title, h1, description, date)
-
-
-def get_database(query):
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
-    cursor.execute(query)
-    database = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return database
+                        "h1, description, created_at) VALUES (%s, %s, %s, %s,"
+                        " %s, %s)", id, status_code, title, h1, description,
+                        date)
 
 
 @app.route('/')
@@ -98,10 +82,11 @@ def get_index():
 
 @app.route('/urls')
 def get_urls():
-    site_list = get_database_entry("SELECT DISTINCT ON (id) * FROM urls LEFT JOIN" \
-                      " (SELECT url_id, status_code, created_at AS" \
-                      " last_check_date FROM url_checks ORDER BY id DESC) AS" \
-                      " checks ON urls.id = checks.url_id ORDER BY id DESC;" )
+    site_list = get_database_entry("SELECT DISTINCT ON (id) * FROM urls LEFT"
+                                   " JOIN (SELECT url_id, status_code,"
+                                   " created_at AS last_check_date FROM"
+                                   " url_checks ORDER BY id DESC) AS checks ON"
+                                   " urls.id = checks.url_id ORDER BY id DESC;")
     return render_template(
         'site_list.html',
         site_list=site_list
@@ -124,22 +109,23 @@ def post_urls():
         return redirect(url_for('get_url', id=entry[0][0]))
     date = get_date()
     make_database_entry("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
-                   site_url, date)
-    [(id,)] = get_database_entry('SELECT id FROM urls WHERE name = %s', site_url)
+                        site_url, date)
+    [(id,)] = get_database_entry('SELECT id FROM urls WHERE name = %s',
+                                 site_url)
     flash('Страница успешно добавлена', 'success')
     return redirect(url_for('get_url', id=id))
 
 
 @app.post('/urls/<id>/checks')
 def post_url_check(id):
-    [(id, url, date)] = get_database_entry('SELECT * FROM urls WHERE id = %s', id)
-    page = get_page(url)
-    if page:
-        status_code, title, h1, description = make_url_check(page)
+    [(id, url, date)] = get_database_entry('SELECT * FROM urls WHERE id = %s',
+                                           id)
+    check_url = make_url_check(url)
+    if check_url:
+        status_code, title, h1, description = check_url
     else:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('get_url', id=id))
-
     add_to_url_checks_table(id, status_code, title, h1, description)
     flash('Страница успешно проверена', 'success')
     return redirect(url_for('get_url', id=id))
@@ -147,10 +133,10 @@ def post_url_check(id):
 
 @app.route('/urls/<id>')
 def get_url(id):
-    [(id, name, date)] = get_database_entry('SELECT * FROM urls WHERE id = %s', id)
-    url_checks_query = f"SELECT * FROM url_checks WHERE url_id" \
-                       f" = {id} ORDER BY id DESC"
-    site_checks = get_database(url_checks_query)
+    [(id, name, date)] = get_database_entry('SELECT * FROM urls WHERE id = %s',
+                                            id)
+    site_checks = get_database_entry('SELECT * FROM url_checks WHERE url_id = '
+                                     '%s ORDER BY id DESC', id)
     messages = get_flashed_messages(with_categories=True)
     return render_template(
         'single_site.html',
