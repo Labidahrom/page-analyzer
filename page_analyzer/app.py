@@ -45,11 +45,8 @@ def make_url_check(url):
                              "Gecko/20100101 Firefox/60.0",
                "Accept": "text/html,application/xhtml+xml,"
                          "application/xml;q=0.9,*/*;q=0.8"}
-    try:
-        page = session.get(url, headers=headers)
-        page.raise_for_status()
-    except requests.exceptions.RequestException:
-        return
+    page = session.get(url, headers=headers)
+    page.raise_for_status()
     status_code = page.status_code
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find('title')
@@ -120,10 +117,9 @@ def post_urls():
 def post_url_check(id):
     [(id, url, date)] = get_database_entry('SELECT * FROM urls WHERE id = %s',
                                            id)
-    check_url = make_url_check(url)
-    if check_url:
-        status_code, title, h1, description = check_url
-    else:
+    try:
+        status_code, title, h1, description = make_url_check(url)
+    except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('get_url', id=id))
     add_to_url_checks_table(id, status_code, title, h1, description)
