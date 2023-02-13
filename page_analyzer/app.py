@@ -1,6 +1,7 @@
 from flask import Flask, request, redirect, render_template, \
     flash, get_flashed_messages, url_for
 import psycopg2
+from psycopg2.extras import NamedTupleCursor
 from datetime import datetime
 from validators.url import url
 from urllib.parse import urlparse
@@ -14,15 +15,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("SECRET_KEY")
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
-
-
-def connect_to_database():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn.cursor(), conn
-
-
-def get_date():
-    return datetime.now().strftime("%Y-%m-%d")
+conn = psycopg2.connect(DATABASE_URL)
 
 
 def prepare_seo_data(url):
@@ -49,15 +42,13 @@ def prepare_seo_data(url):
 
 
 def add_to_url_checks_table(id, status_code, title, h1, description):
-    date = get_date()
-    cursor, connection = connect_to_database()
-    cursor.execute("INSERT INTO url_checks (url_id, status_code, title, "
-                   "h1, description, created_at) VALUES (%s, %s, %s, %s,"
-                   " %s, %s)", (id, status_code, title, h1, description,
-                                date))
-    connection.commit()
-    cursor.close()
-    connection.close()
+    date = datetime.now().strftime("%Y-%m-%d")
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute("INSERT INTO url_checks (url_id, status_code, title, "
+                       "h1, description, created_at) VALUES (%s, %s, %s, %s,"
+                       " %s, %s)", (id, status_code, title, h1, description,
+                                    date))
+        conn.commit()
 
 
 @app.route('/')
@@ -70,15 +61,13 @@ def get_index():
 
 @app.route('/urls')
 def get_urls():
-    cursor, connection = connect_to_database()
-    cursor.execute("SELECT DISTINCT ON (id) * FROM urls LEFT"
-                   " JOIN (SELECT url_id, status_code,"
-                   " created_at AS last_check_date FROM"
-                   " url_checks ORDER BY id DESC) AS checks ON"
-                   " urls.id = checks.url_id ORDER BY id DESC;")
-    site_list = cursor.fetchall()
-    cursor.close()
-    connection.close()
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute("SELECT DISTINCT ON (id) * FROM urls LEFT"
+                       " JOIN (SELECT url_id, status_code,"
+                       " created_at AS last_check_date FROM"
+                       " url_checks ORDER BY id DESC) AS checks ON"
+                       " urls.id = checks.url_id ORDER BY id DESC;")
+        site_list = cursor.fetchall()
     return render_template(
         'site_list.html',
         site_list=site_list
@@ -87,7 +76,6 @@ def get_urls():
 
 @app.post('/urls')
 def post_urls():
-    cursor, connection = connect_to_database()
     parse_url = urlparse(request.form.to_dict()['url'])
     site_url = f'{parse_url.scheme}://{parse_url.hostname}'
     if not url(site_url) or len(site_url) > 255:
@@ -96,50 +84,46 @@ def post_urls():
         return render_template(
             'index.html', messages=messages
         ), 422
-    cursor.execute('SELECT * FROM urls WHERE name = %s', (site_url,))
-    entry = cursor.fetchall()
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute('SELECT * FROM urls WHERE name = %s', (site_url,))
+        entry = cursor.fetchall()
     if entry:
         flash('Страница уже существует', 'info')
         return redirect(url_for('get_url', id=entry[0][0]))
-    date = get_date()
-    cursor.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
-                   (site_url, date))
-    connection.commit()
-    cursor.execute('SELECT id FROM urls WHERE name = %s', (site_url,))
-    [(id,)] = cursor.fetchall()
-    cursor.close()
-    connection.close()
+    date = datetime.now().strftime("%Y-%m-%d")
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
+                       (site_url, date))
+        conn.commit()
+        cursor.execute('SELECT id FROM urls WHERE name = %s', (site_url,))
+        [(id,)] = cursor.fetchall()
     flash('Страница успешно добавлена', 'success')
     return redirect(url_for('get_url', id=id))
 
 
 @app.post('/urls/<id>/checks')
 def post_url_check(id):
-    cursor, connection = connect_to_database()
-    cursor.execute('SELECT * FROM urls WHERE id = %s', (id,))
-    [(id, url, date)] = cursor.fetchall()
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute('SELECT * FROM urls WHERE id = %s', (id,))
+        [(id, url, date)] = cursor.fetchall()
     try:
         status_code, title, h1, description = prepare_seo_data(url)
     except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('get_url', id=id))
     add_to_url_checks_table(id, status_code, title, h1, description)
-    cursor.close()
-    connection.close()
     flash('Страница успешно проверена', 'success')
     return redirect(url_for('get_url', id=id))
 
 
 @app.route('/urls/<id>')
 def get_url(id):
-    cursor, connection = connect_to_database()
-    cursor.execute('SELECT * FROM urls WHERE id = %s', (id,))
-    [(id, name, date)] = cursor.fetchall()
-    cursor.execute('SELECT * FROM url_checks WHERE url_id = %s '
-                   'ORDER BY id DESC', (id,))
-    site_checks = cursor.fetchall()
-    cursor.close()
-    connection.close()
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute('SELECT * FROM urls WHERE id = %s', (id,))
+        [(id, name, date)] = cursor.fetchall()
+        cursor.execute('SELECT * FROM url_checks WHERE url_id = %s '
+                       'ORDER BY id DESC', (id,))
+        site_checks = cursor.fetchall()
     messages = get_flashed_messages(with_categories=True)
     return render_template(
         'single_site.html',
