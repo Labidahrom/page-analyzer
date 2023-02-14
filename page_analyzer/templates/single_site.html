@@ -52,30 +52,30 @@
      {% for check in site_checks %}
       <tr>
        <td>
-           {{ check.0 }}
+           {{ check.id }}
        </td>
        <td>
-           {% if check.2 %}
-           {{ check.2 }}
+           {% if check.status_code %}
+           {{ check.status_code }}
            {% endif %}
        </td>
        <td>
-           {% if check.3 %}
-           {{ check.3 }}
+           {% if check.h1 %}
+           {{ check.h1 }}
            {% endif %}
        </td>
        <td>
-           {% if check.4 %}
-           {{ check.4 }}
+           {% if check.title %}
+           {{ check.title }}
            {% endif %}
        </td>
        <td>
-           {% if check.5 %}
-           {{ check.5 }}
+           {% if check.description %}
+           {{ check.description }}
            {% endif %}
        </td>
        <td>
-           {{ check.6 }}
+           {{ check.created_at }}
        </td>
      </tr>
      {% endfor %}

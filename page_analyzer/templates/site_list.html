@@ -15,19 +15,19 @@
      {% for site in site_list %}
       <tr>
        <td>
-           {{ site.0 }}
+           {{ site.id }}
        </td>
        <td>
-           <a href="{{ url_for('get_url', id=site.0) }}">{{ site.1 }}</a>
+           <a href="{{ url_for('get_url', id=site.id) }}">{{ site.name }}</a>
        </td>
        <td>
-           {% if site.5 %}
-           {{ site.5 }}
+           {% if site.last_check_date %}
+           {{ site.last_check_date }}
            {% endif %}
        </td>
        <td>
-           {% if site.4 %}
-           {{ site.4 }}
+           {% if site.status_code %}
+           {{ site.status_code }}
            {% endif %}
        </td>
      </tr>

@@ -21,7 +21,7 @@
       </div>
       </div>
     </nav>
-
+  {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div class=flashes>
       {% for category, message in messages %}
@@ -29,7 +29,7 @@
       {% endfor %}
     </div>
     {% endif %}
-
+  {% endwith %}
 {% block content %}{% endblock %}
     <div class="border-top py-3 mt-5 flex-shrink-0">
       <div class="container-lg text-center">
